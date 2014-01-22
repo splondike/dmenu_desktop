@@ -1,0 +1,1 @@
+This script is intended for people who like to use dmenu as their application launcher. It looks in the /usr/share/applications/, and ~/bin/applications directories for .desktop files to launch rather than just dumping all of **/bin into your dmenu. The dmenu entries are taken from the filename, as that seems to be the most concise and robust way of getting a name.
