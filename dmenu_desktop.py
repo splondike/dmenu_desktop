@@ -6,6 +6,8 @@
 # Caches the .desktop files data in CACHE_FILE to speed startup, cache is invalidated
 # by file system timestamps.
 #
+# Allows for user adjusted .desktop files to overwrite system ones (e.g. to fix Skypes pulse audio woes)
+#
 # @see .desktop spec is here: http://standards.freedesktop.org/desktop-entry-spec/desktop-entry-spec-latest.html#value-types
 
 import os, subprocess, re, pickle
@@ -16,7 +18,9 @@ from configparser import RawConfigParser
 TERMINAL="/usr/bin/urxvt" #TODO: Use a freedesktop.org standard to work this out?
 HOME_DIR=os.environ["HOME"]
 CACHE_FILE=HOME_DIR + "/.cache/dmenu_applications"
-DIRS=["/usr/share/applications/", HOME_DIR + "/bin/applications/"]
+# Earlier directories take priority over later ones for name conflicts. Use this
+# to have customised launchers for applications.
+DIRS=[HOME_DIR + "/bin/applications/", "/usr/share/applications/"]
 
 def get_results_list():
    if is_valid_cache(CACHE_FILE):
@@ -43,12 +47,17 @@ def parse_desktop_files():
    # can have ordering. The number of entries should be small enough
    # for an O(n) lookup.
    results_list = []
+   existing_names = {}
    for candidate in candidates:
       # The filename is used for the dmenu selection, as the "Name" key
       # is too verbose, and Exec may contain confounding factors like
       # execing via env
       filename = candidate["filename"].split("/")[-1][0:-8]
       name = bytes(filename.lower() + "\n", "ascii")
+      if name in existing_names:
+         continue
+      else:
+         existing_names[name] = True
 
       if "Path" in candidate:
          path = candidate["Path"]
